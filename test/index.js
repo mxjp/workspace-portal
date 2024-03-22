@@ -68,6 +68,7 @@ for (const testCase of testCases) {
 			}
 		} finally {
 			await Promise.all(portals.map(p => p.then(p => p.kill())));
+			await new Promise(r => setTimeout(r, 500));
 		}
 	});
 }

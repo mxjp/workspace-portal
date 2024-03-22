@@ -17,7 +17,6 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
           scope: mxjp
-      - run: npm ci
       - run: npm publish --provenance --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.npm_token }}

@@ -11,5 +11,8 @@
 	"type": "module",
 	"bin": {
 		"workspace-portal": "./cli.js"
+	},
+	"scripts": {
+		"test": "node ./test/index.js"
 	}
 }

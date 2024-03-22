@@ -14,6 +14,7 @@ const packageLockContext = dirname(packageLockFilename);
 const packageLock = JSON.parse(await readFile(packageLockFilename, "utf-8"));
 
 const packageFilename = await resolveFile("package.json");
+const packageContext = dirname(packageFilename);
 const packageInfo = JSON.parse(await readFile(packageFilename, "utf-8"));
 
 const linked = new Set();
@@ -22,7 +23,7 @@ createPeer({
 	info: {
 		version: VERSION,
 		name: packageInfo.name,
-		root: dirname(packageFilename),
+		root: packageContext,
 		link,
 	},
 	onInfo: info => {

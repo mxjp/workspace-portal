@@ -2,7 +2,7 @@
 import { readFile } from "node:fs/promises";
 import { renewSymlink, resolveFile } from "./lib/fs.js";
 import { createPeer } from "./lib/peer.js";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join, normalize } from "node:path";
 import { getPackageName } from "./lib/npm.js";
 
 const VERSION = "workspace-portal-v1";
@@ -26,8 +26,28 @@ createPeer({
 		root: packageContext,
 		link,
 	},
-	onInfo: info => {
-		if (info.version !== VERSION || linked.has(info.name)) {
+	onInfo: async info => {
+		if (info === null || typeof info !== "object") {
+			throw new Error("info message is not an object.");
+		}
+		if (info.version !== VERSION) {
+			return;
+		}
+
+		if (typeof info.name !== "string" || !/^[a-z0-9_\-\/@]+$/i.test(info.name)) {
+			throw new Error("info.name is not a valid package name.");
+		}
+		if (typeof info.root !== "string" || !isAbsolute(info.root)) {
+			throw new Error("info.root is not an absolute path.");
+		}
+		if (!Array.isArray(info.link) || !link.every(link => {
+			link = normalize(link);
+			return !link.startsWith("..");
+		})) {
+			throw new Error("info.link is not an array of valid forward paths.");
+		}
+
+		if (linked.has(info.name)) {
 			return;
 		}
 		linked.add(info.name);
@@ -43,7 +63,7 @@ createPeer({
 						const target = join(info.root, link);
 						const path = join(packageLockContext, relPath, link);
 						console.log(`Symlinking ${JSON.stringify(target)} into ${JSON.stringify(path)}`);
-						renewSymlink(target, path);
+						await renewSymlink(target, path);
 					}
 				}
 			}

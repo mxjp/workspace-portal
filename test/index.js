@@ -47,28 +47,31 @@ const testCases = [
 
 for (const testCase of testCases) {
 	await test(testCase.name, async () => {
-		const env = await prepareEnv(testCase.name);
-		const portals = [];
-		try {
-			if (testCase.start.includes("foo")) {
-				portals.push(startPortal(join(env, "foo"), ["dist_foo"]));
+		retries: for (let i = 0; i < 3; i++) {
+			const env = await prepareEnv(testCase.name);
+			const portals = [];
+			try {
+				if (testCase.start.includes("foo")) {
+					portals.push(startPortal(join(env, "foo"), ["dist_foo"]));
+				}
+				if (testCase.start.includes("bar")) {
+					portals.push(startPortal(join(env, "workspace/bar"), ["dist_bar_1", "dist_bar_2"]));
+				}
+				if (testCase.start.includes("baz")) {
+					portals.push(startPortal(join(env, "workspace/baz"), ["dist_baz"]));
+				}
+				await new Promise(r => setTimeout(r, 500));
+				for (const [path, target] of testCase.links) {
+					await verifySymlink(join(env, target), join(env, path));
+				}
+				for (const path of testCase.skipped) {
+					await verifySkipped(path);
+				}
+			} finally {
+				await Promise.all(portals.map(p => p.then(p => p.kill())));
+				await new Promise(r => setTimeout(r, 100));
 			}
-			if (testCase.start.includes("bar")) {
-				portals.push(startPortal(join(env, "workspace/bar"), ["dist_bar_1", "dist_bar_2"]));
-			}
-			if (testCase.start.includes("baz")) {
-				portals.push(startPortal(join(env, "workspace/baz"), ["dist_baz"]));
-			}
-			await new Promise(r => setTimeout(r, 1000));
-			for (const [path, target] of testCase.links) {
-				await verifySymlink(join(env, target), join(env, path));
-			}
-			for (const path of testCase.skipped) {
-				await verifySkipped(path);
-			}
-		} finally {
-			await Promise.all(portals.map(p => p.then(p => p.kill())));
-			await new Promise(r => setTimeout(r, 500));
+			break retries;
 		}
 	});
 }

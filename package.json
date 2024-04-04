@@ -7,7 +7,7 @@
 		"url": "https://github.com/mxjp/workspace-portal"
 	},
 	"license": "MIT",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"type": "module",
 	"bin": {
 		"workspace-portal": "./cli.js"

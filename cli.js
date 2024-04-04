@@ -58,6 +58,7 @@ createPeer({
 					const packageInfo = packageLock.packages[relPath];
 					if (packageInfo.link) {
 						console.log(`Skipping ${JSON.stringify(join(packageLockContext, relPath))} because it has already been linked by npm.`);
+						return;
 					}
 					for (const link of info.link) {
 						const target = join(info.root, link);
